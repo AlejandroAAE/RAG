@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-jose
+passlib[bcrypt]
+pydantic
+qdrant-client
+python-multipart
+PyPDF2
+sentence-transformers
+requests
