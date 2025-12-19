@@ -1,18 +1,29 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import SQLModel
+from db.session import engine
+from contextlib import asynccontextmanager
 
-# Import routes
-from src.auth.routes import router as auth_router
-from src.rag.router import router as rag_router
+from api.v1.router import api_router
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from db.session import engine
+    from sqlmodel import SQLModel
+
+    SQLModel.metadata.create_all(engine)
+    yield
 
 app = FastAPI(
+    lifespan=lifespan,
     title="RAG Backend - 100% Local and Free",
     description="Retrieval-Augmented Generation system using FastAPI, Qdrant, Ollama and Embeddings",
     version="1.0.0"
 )
 
-# CORS (opcional, pero profesional)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,11 +32,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Routers (de momento solo están definidos los archivos)
-app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
-app.include_router(rag_router, prefix="/rag", tags=["RAG"])
+# Incluir rutas API profesionales
+app.include_router(api_router, prefix="/api/v1")
 
-
-@app.get("/", tags=["Root"])
-async def root():
+@app.get("/")
+def root():
     return {"message": "RAG Backend running successfully!"}
+
+
